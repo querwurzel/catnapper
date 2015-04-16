@@ -19,6 +19,7 @@
   	<session-timeout>5</session-timeout>
   	<cookie-config>
  	  <name>CATNAPPER</name>
+ 	  <max-age>5</max-age>
   	</cookie-config>
   </session-config>
 </web-app>
