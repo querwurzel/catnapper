@@ -71,7 +71,7 @@ public final class CatnapperConf implements ServletContextListener {
 	}
 
 	@Deprecated
-	public static void setAggregate(final FeedAggregate aggregate, final String newUrls) {
-		store.writeFile(aggregate, newUrls);
+	public static String setAggregate(final FeedAggregate aggregate, final String newUrls) {
+		return store.writeFile(aggregate, newUrls);
 	}
 }

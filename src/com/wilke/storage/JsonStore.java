@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
+import java.net.URL;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -185,17 +186,19 @@ public final class JsonStore implements Closeable {
 	}
 
 	@Deprecated
-	public void writeFile(final FeedAggregate aggregate, final String newUrls) {
+	public String writeFile(final FeedAggregate aggregate, final String newUrls) {
 		JsonArray urls;
 
 		// user input validation, quick and dirty
 		if (newUrls == null || newUrls.isEmpty())
-			return;
+			return newUrls;
 		try (Reader reader = new StringReader(newUrls)) {
 			urls = Json.createReader(reader).readArray();
+			for (int idx = 0; idx < urls.size(); idx++)
+				new URL(urls.getString(idx));
 		} catch (JsonException | IOException e) {
-			e.printStackTrace();
-			return; // user input syntax errors, abort
+			System.err.println("JsonStore Validation Error: " + e.getMessage());
+			return newUrls; // user input syntax errors, abort
 		}
 
 		try (OutputStream output = new FileOutputStream(aggregate.fileName, Boolean.FALSE)) {
@@ -212,5 +215,7 @@ public final class JsonStore implements Closeable {
 		} catch (final IOException e) {
 			e.printStackTrace();
 		}
+
+		return newUrls;
 	}
 }
