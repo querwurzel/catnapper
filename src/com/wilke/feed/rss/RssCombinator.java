@@ -13,16 +13,16 @@ import com.wilke.feed.rss.RssFeed.RssItem;
 
 public class RssCombinator {
 
-	// to be observated, might not be thread-safe
-	private static final XMLOutputFactory outFactory = XMLOutputFactory.newFactory();
+	private static final XMLOutputFactory outputFactory = XMLOutputFactory.newFactory();
 
 	public static void aggregateFeed(final OutputStream out, final FeedAggregate aggregate) {
 		try {
-			final XMLStreamWriter writer = outFactory.createXMLStreamWriter(out);
+			final XMLStreamWriter writer = outputFactory.createXMLStreamWriter(out);
 
 			writer.writeStartDocument();
 			writer.writeStartElement(RssFeed.RSS);
 			writer.writeAttribute(RssFeed.VERSION, "2.0");
+			writer.writeNamespace("atom", "http://www.w3.org/2005/Atom"); // interoperability
 
 			writer.writeStartElement(RssChannel.CHANNEL);
 
@@ -33,6 +33,10 @@ public class RssCombinator {
 			writer.writeStartElement(RssChannel.LINK);
 			writer.writeCharacters(aggregate.link);
 			writer.writeEndElement();
+			writer.writeEmptyElement("atom", RssChannel.LINK, "http://www.w3.org/2005/Atom"); // interoperability
+			writer.writeAttribute("href", aggregate.link);
+			writer.writeAttribute("rel", "self");
+			writer.writeAttribute("type", "application/rss+xml");
 
 			writer.writeStartElement(RssChannel.DESCRIPTION);
 			writer.writeCharacters(aggregate.description);

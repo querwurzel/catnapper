@@ -34,7 +34,7 @@ public class RssFeed {
 		public static final String LINK = "link";
 		public static final String GUID = "guid";
 		public static final String DESCRIPTION = "description";
-		public static final String PUBDATE = "pubdate";
+		public static final String PUBDATE = "pubDate";
 
 		public String title;
 		public String category;

@@ -32,7 +32,7 @@ public class RssParser {
 			in.next();
 
 			if (in.isStartElement()) {
-				final String tag = in.getLocalName().toLowerCase();
+				final String tag = in.getLocalName();
 
 				switch (tag) {
 				case RssFeed.RSS:
@@ -62,7 +62,7 @@ public class RssParser {
 			in.next();
 
 			if (in.isStartElement() || in.isEndElement()) {
-				final String tag = in.getLocalName().toLowerCase();
+				final String tag = in.getLocalName();
 
 				if (in.isStartElement()) {
 					switch (tag) {
@@ -99,7 +99,7 @@ public class RssParser {
 			in.next();
 
 			if (in.isStartElement() || in.isEndElement()) {
-				final String tag = in.getLocalName().toLowerCase();
+				final String tag = in.getLocalName();
 
 				if (in.isStartElement()) {
 					switch (tag) {

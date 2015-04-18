@@ -30,7 +30,8 @@ public final class FeedCombinator extends HttpServlet {
 		response.setCharacterEncoding("UTF-8");
 		response.setContentType("application/rss+xml");
 
-		aggregate.link = (aggregate.link == null) ? request.getRequestURL().toString() : aggregate.link;
+		aggregate.link = request.getRequestURL().toString();
+
 		RssCombinator.aggregateFeed(response.getOutputStream(), aggregate);
 	}
 
