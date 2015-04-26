@@ -3,6 +3,7 @@ package com.wilke.controller;
 import static com.wilke.controller.FeedFilter.feedIdentifier;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -35,9 +36,11 @@ public class FeedSettings extends HttpServlet {
 			feed = aggregate.fileContent;
 		}
 
-		response.setHeader("Cache-Control","no-cache"); // HTTP 1.1
-		response.setHeader("Pragma","no-cache"); // HTTP 1.0
-		response.setDateHeader("Expires", 0); // prevents caching at the proxy server
+		response.setHeader("Cache-Control","max-age=10"); // 10 seconds in accordance with the JsonStore
+		response.setDateHeader("Expires", System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(10));
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("text/html");
+		response.setHeader("Connection", "close");
 
 		request.setAttribute("title", aggregate.title);
 		request.setAttribute("feed", feed);
