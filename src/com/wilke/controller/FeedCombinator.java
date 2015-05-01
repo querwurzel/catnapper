@@ -27,8 +27,7 @@ public final class FeedCombinator extends HttpServlet {
 		final FeedAggregate aggregate = (FeedAggregate)request.getAttribute(feedIdentifier);
 
 		response.setHeader("Connection", "close");
-		response.setCharacterEncoding("UTF-8");
-		response.setContentType("application/rss+xml");
+		response.setContentType("application/rss+xml;charset=UTF-8");
 
 		aggregate.link = request.getRequestURL().toString();
 

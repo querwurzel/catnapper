@@ -38,8 +38,7 @@ public class FeedSettings extends HttpServlet {
 
 		response.setHeader("Cache-Control","max-age=10"); // 10 seconds in accordance with the JsonStore
 		response.setDateHeader("Expires", System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(10));
-		response.setCharacterEncoding("UTF-8");
-		response.setContentType("text/html");
+		response.setContentType("text/html;charset=UTF-8");
 		response.setHeader("Connection", "close");
 
 		request.setAttribute("title", aggregate.title);
