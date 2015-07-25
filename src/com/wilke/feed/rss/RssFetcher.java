@@ -37,7 +37,7 @@ public class RssFetcher implements ServletContextListener {
 	/**
 	 * No automatic feed type recognition, RSS 2.0 is expected!
 	 * HTTP/S is expected!
-	 * 
+	 *
 	 * The iterator returned is not thread-safe. Its hasNext() method may block for 15 seconds at most.
 	 */
 	public static Iterator<RssFeed> fetchFeeds(final List<String> urls) {
@@ -70,7 +70,7 @@ public class RssFetcher implements ServletContextListener {
 			public RssFeed next() {
 				if (this.nextItem != null || this.hasNext()) {
 					final RssFeed nextItem = this.nextItem;
-					this.nextItem    = null;
+					this.nextItem = null;
 					return nextItem;
 				}
 
@@ -136,7 +136,7 @@ public class RssFetcher implements ServletContextListener {
 			//con.setRequestProperty("Accept-Encoding", "gzip");
 			conn.connect();
 
-			if (conn.getResponseCode() != HttpServletResponse.SC_OK) // 200
+			if (conn.getResponseCode() != HttpServletResponse.SC_OK) // 200 (through naive)
 				throw new IOException(
 						String.format("Feed not fetched (HTTP %d): %s", conn.getResponseCode(), this.url));
 

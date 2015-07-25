@@ -51,18 +51,14 @@ public final class JsonStore implements Closeable {
 
 	private final Path path;
 
-	private final Alarm2 alarm = new Alarm2(TimeUnit.SECONDS.toMillis(10), new Runnable() {
-		@Override
-		public void run() {
-			JsonStore.this.scheduleFileScanNow();
-		}});
+	private final Alarm2 alarm = new Alarm2(TimeUnit.SECONDS.toMillis(10), () -> JsonStore.this.scheduleFileScanNow());
 
 	private final Thread fileWatcher = new Thread() {
 		@Override
 		public void run() {
 			try (WatchService service = FileSystems.getDefault().newWatchService()) {
 				JsonStore.this.path.register(service, ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE);
-				WatchKey key = null;
+				WatchKey key;
 				do {
 					try {
 						key = service.take();

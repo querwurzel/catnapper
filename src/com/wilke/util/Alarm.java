@@ -61,7 +61,7 @@ public final class Alarm {
 		};
 
 		this.stop();
-		this.alarm = new WeakReference<TimerTask>(task);
+		this.alarm = new WeakReference<>(task);
 		timer.schedule(task, this.timeout);
 	}
 }

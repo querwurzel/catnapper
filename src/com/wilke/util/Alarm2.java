@@ -83,15 +83,12 @@ public final class Alarm2 {
 
 	public synchronized void reset() {
 		this.stop();
-		this.alarm = scheduler.schedule(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Alarm2.this.action.run();
-				} finally {
-					Alarm2.this.stop(); // upkeep
-				}
-			}
-		}, this.timeout, this.timeUnit);
+		this.alarm = scheduler.schedule(() -> {
+            try {
+                Alarm2.this.action.run();
+            } finally {
+                Alarm2.this.stop(); // upkeep
+            }
+        }, this.timeout, this.timeUnit);
 	}
 }
