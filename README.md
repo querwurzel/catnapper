@@ -9,7 +9,7 @@ The URL for each anime must be entered once by you like:<br>
 `http://www.nyaa.se/?page=rss&term=HorribleSubs+sword+art+online+ii+720p+mkv`
 
 __Requirements__:
-- Java 7+ (JRE or JDK)
+- Java 8+ (JRE or JDK)
 - each JEE 6+ Web Profile compliant Servlet Container / application server (e.g. Tomcat, Jetty)
 
 Have a look at the deployment descriptor for some simple configuration (`/WebContent/WEB-INF/web.xml`).
