@@ -7,8 +7,8 @@ import java.util.TimerTask;
 
 /**
  * An alarm allows the execution of a specific action after a specific timeout.
- * The alarm can be reused / resetted at will.
- * After instantiation the alarm is not yet set, therefore call start() or reset().
+ * The alarm can be reused / reset at will.
+ * After instantiation the alarm is not yet set, therefore call reset() or start().
  * An alarm instance is immutable and thread-safe.
  * After timeout the action is only triggered once!
  * 
@@ -29,7 +29,7 @@ public final class Alarm {
 	 * @exception NullPointerException if task is null
 	 * @exception IllegalArgumentException if timeout < 1
 	 */
-	public Alarm(final long timeout, final Runnable action) {
+	public Alarm(final Runnable action, final long timeout) {
 		if (timeout < 1)
 			throw new IllegalArgumentException();
 

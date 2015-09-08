@@ -51,7 +51,7 @@ public final class JsonStore implements Closeable {
 
 	private final Path path;
 
-	private final Alarm2 alarm = new Alarm2(TimeUnit.SECONDS.toMillis(10), () -> JsonStore.this.scheduleFileScanNow());
+	private final Alarm2 alarm = new Alarm2(() -> JsonStore.this.scheduleFileScanNow(), TimeUnit.SECONDS.toMillis(10));
 
 	private final Thread fileWatcher = new Thread() {
 		@Override

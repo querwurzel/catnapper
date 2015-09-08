@@ -37,14 +37,17 @@ public class FeedFilter implements Filter {
 		}
 	}
 
+	/**
+	 * Returns all characters following on the last slash
+	 * of the given URI considering them the feed identifier.
+	 * @param uri
+	 * @return null if slash not found or last character
+	 */
 	public static String getFeedIdentifier(final String uri) {
 		final int lastSlash = uri.lastIndexOf("/");
 
-		// slash found and not the last character
-		if (lastSlash != -1 && lastSlash < uri.length())
-			return uri.substring(lastSlash + 1);
-
-		return null;
+		// null if slash not found or last character
+		return (lastSlash == -1 || lastSlash == uri.length()) ? null : uri.substring(lastSlash + 1);
 	}
 
 	@Override

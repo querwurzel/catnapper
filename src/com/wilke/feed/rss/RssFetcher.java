@@ -11,6 +11,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
@@ -18,27 +19,36 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-import javax.servlet.annotation.WebListener;
-import javax.servlet.http.HttpServletResponse;
+import javax.xml.stream.XMLStreamException;
 
 import com.wilke.CatnapperConf;
+import com.wilke.util.DaemonThreadFactory;
 
-@WebListener
-public class RssFetcher implements ServletContextListener {
+public class RssFetcher {
 
 	private static final RssFeed END_OF_QUEUE = new RssFeed(); // poison pill
 
-	private static final ExecutorService ioPool = Executors.newFixedThreadPool(CatnapperConf.maxConcTasks());
+	private static final ExecutorService ioPool =
+			Executors.newFixedThreadPool(CatnapperConf.maxConcTasks(), DaemonThreadFactory.INSTANCE);
 
-	private static final ExecutorService collectorPool = Executors.newFixedThreadPool(CatnapperConf.maxConcTasks());
+	private static final ExecutorService collectorPool =
+			Executors.newFixedThreadPool(CatnapperConf.maxConcTasks(), DaemonThreadFactory.INSTANCE);
 
 	/**
-	 * No automatic feed type recognition, RSS 2.0 is expected!
-	 * HTTP/S is expected!
+	 * Timeout in milliseconds to be used when opening a communications link to a given URL.
+	 */
+	public static final int connectTimeout = 4000;
+
+	/**
+	 * Timeout in milliseconds to be used when a connection is established to a given URL to read all data.
+	 */
+	public static final int readTimeout = 6000;
+
+	/**
+	 * No automatic feed type recognition, RSS 2.0 via HTTP/S is expected!
 	 *
-	 * The iterator returned is not thread-safe. Its hasNext() method may block for 15 seconds at most.
+	 * The iterator returned is not thread-safe.
+	 * Its hasNext() method may block for {@value #connectTimeout}+{@value #readTimeout} milliseconds at most.
 	 */
 	public static Iterator<RssFeed> fetchFeeds(final List<String> urls) {
 		final BlockingQueue<RssFeed> queue = new ArrayBlockingQueue<>(urls.size() + 1); // including poison pill
@@ -55,7 +65,7 @@ public class RssFetcher implements ServletContextListener {
 					return Boolean.FALSE;
 
 				try {
-					final RssFeed feed = queue.poll(15, TimeUnit.SECONDS);
+					final RssFeed feed = queue.poll(connectTimeout + readTimeout, TimeUnit.MILLISECONDS);
 
 					if (feed == null || feed == END_OF_QUEUE)
 						return !(this.isClosed = Boolean.TRUE);
@@ -99,11 +109,11 @@ public class RssFetcher implements ServletContextListener {
 			for (final String url : this.urls)
 				this.collector.submit(new RssFetchTask(url));
 
-			for (final String url : this.urls)
+			for (int idx = 0; idx < this.urls.size(); idx++)
 				try {
 					this.queue.add(this.collector.take().get()); // each call blocks
-				} catch (InterruptedException | ExecutionException e) {
-					e.printStackTrace();
+				} catch (InterruptedException | CancellationException | ExecutionException e) {
+					e.getCause().printStackTrace();
 				}
 
 			this.queue.add(RssFetcher.END_OF_QUEUE);
@@ -118,38 +128,30 @@ public class RssFetcher implements ServletContextListener {
 		}
 
 		@Override
-		public RssFeed call() throws Exception {
-			final URL safeUrl = new URL(this.url);
+		public RssFeed call() throws IOException {
+			try {
+				final URL safeUrl = new URL(this.url);
+				if (!"http".equals(safeUrl.getProtocol()) && !"https".equals(safeUrl.getProtocol()))
+					throw new MalformedURLException("HTTP/S is expected");
 
-			if (!"http".equals(safeUrl.getProtocol()) && !"https".equals(safeUrl.getProtocol()))
-				throw new MalformedURLException("HTTP/S is expected: " + this.url);
+					// dependent of system proxy
+					final HttpURLConnection conn = (HttpURLConnection)safeUrl.openConnection();
+					conn.setConnectTimeout(connectTimeout);
+					conn.setReadTimeout(readTimeout);
+					conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko");
+					conn.setRequestProperty("Accept", "application/rss+xml, application/xhtml+xml, text/xml");
+					conn.setRequestProperty("Accept-Charset", "UTF-8");
+					conn.setRequestProperty("Accept-Encoding", "identity"); // TODO support gzip
+					conn.setUseCaches(Boolean.FALSE);
+					conn.connect();
 
-			// dependent of system proxy
-			final HttpURLConnection conn = (HttpURLConnection)safeUrl.openConnection();
-			conn.setConnectTimeout(3000);
-			conn.setReadTimeout(7000);
-			conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko");
-			conn.setRequestProperty("Accept", "application/rss+xml, application/xhtml+xml, text/xml");
-			conn.setRequestProperty("Accept-Charset", "UTF-8");
-			conn.setUseCaches(Boolean.FALSE);
-			// possible, but not yet implemented
-			//con.setRequestProperty("Accept-Encoding", "gzip");
-			conn.connect();
+					if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) // 200 (through naive)
+						throw new IOException(String.format("Request unsuccessful (HTTP %d)", conn.getResponseCode()));
 
-			if (conn.getResponseCode() != HttpServletResponse.SC_OK) // 200 (through naive)
-				throw new IOException(
-						String.format("Feed not fetched (HTTP %d): %s", conn.getResponseCode(), this.url));
-
-			return RssParser.parseFeed(conn.getInputStream());
+					return RssParser.parseFeed(conn.getInputStream());
+			} catch (IOException | XMLStreamException e) {
+				throw new IOException(this.url, e); // enrich exception by url
+			}
 		}
-	}
-
-	@Override
-	public void contextInitialized(final ServletContextEvent event) {}
-
-	@Override
-	public void contextDestroyed(final ServletContextEvent event) {
-		RssFetcher.ioPool.shutdown();
-		RssFetcher.collectorPool.shutdown();
 	}
 }
