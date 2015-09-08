@@ -18,7 +18,7 @@ import com.wilke.feed.FeedAggregate;
 @WebFilter(servletNames={"FeedCombinator", "FeedSettings"})
 public class FeedFilter implements Filter {
 
-	public static final String feedIdentifier = "feedIdentifier";
+	public static final String FEED_AGGREGATE = "feedAggregate";
 
 	@Override
 	public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain) throws IOException, ServletException {
@@ -32,7 +32,7 @@ public class FeedFilter implements Filter {
 			httpResp.reset();
 			httpResp.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		} else {
-			httpReq.setAttribute(FeedFilter.feedIdentifier, aggregate);
+			httpReq.setAttribute(FEED_AGGREGATE, aggregate);
 			chain.doFilter(httpReq, httpResp);
 		}
 	}

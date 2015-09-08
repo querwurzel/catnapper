@@ -134,21 +134,21 @@ public class RssFetcher {
 				if (!"http".equals(safeUrl.getProtocol()) && !"https".equals(safeUrl.getProtocol()))
 					throw new MalformedURLException("HTTP/S is expected");
 
-					// dependent of system proxy
-					final HttpURLConnection conn = (HttpURLConnection)safeUrl.openConnection();
-					conn.setConnectTimeout(connectTimeout);
-					conn.setReadTimeout(readTimeout);
-					conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko");
-					conn.setRequestProperty("Accept", "application/rss+xml, application/xhtml+xml, text/xml");
-					conn.setRequestProperty("Accept-Charset", "UTF-8");
-					conn.setRequestProperty("Accept-Encoding", "identity"); // TODO support gzip
-					conn.setUseCaches(Boolean.FALSE);
-					conn.connect();
+				// dependent of system proxy
+				final HttpURLConnection conn = (HttpURLConnection)safeUrl.openConnection();
+				conn.setConnectTimeout(connectTimeout);
+				conn.setReadTimeout(readTimeout);
+				conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko");
+				conn.setRequestProperty("Accept", "application/rss+xml, application/xhtml+xml, text/xml");
+				conn.setRequestProperty("Accept-Charset", "UTF-8");
+				conn.setRequestProperty("Accept-Encoding", "identity"); // TODO support gzip
+				conn.setUseCaches(Boolean.FALSE);
+				conn.connect();
 
-					if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) // 200 (through naive)
-						throw new IOException(String.format("Request unsuccessful (HTTP %d)", conn.getResponseCode()));
+				if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) // 200 (through naive)
+					throw new IOException(String.format("Request unsuccessful (HTTP %d)", conn.getResponseCode()));
 
-					return RssParser.parseFeed(conn.getInputStream());
+				return RssParser.parseFeed(conn.getInputStream());
 			} catch (IOException | XMLStreamException e) {
 				throw new IOException(this.url, e); // enrich exception by url
 			}

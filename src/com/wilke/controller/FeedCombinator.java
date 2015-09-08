@@ -1,6 +1,6 @@
 package com.wilke.controller;
 
-import static com.wilke.controller.FeedFilter.feedIdentifier;
+import static com.wilke.controller.FeedFilter.FEED_AGGREGATE;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -24,7 +24,7 @@ public final class FeedCombinator extends HttpServlet {
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
-		final FeedAggregate aggregate = (FeedAggregate)request.getAttribute(feedIdentifier);
+		final FeedAggregate aggregate = (FeedAggregate)request.getAttribute(FEED_AGGREGATE);
 
 		response.setHeader("Connection", "close");
 		response.setContentType("application/rss+xml;charset=UTF-8");
