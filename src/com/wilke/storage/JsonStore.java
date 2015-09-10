@@ -44,7 +44,7 @@ import com.wilke.util.Alarm2;
 
 public final class JsonStore implements Closeable {
 
-	// maps feed identifier to feed aggregates
+	// maps feed identifier to feed aggregate
 	private final Map<String, FeedAggregate> store = new HashMap<>();
 
 	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();

@@ -29,14 +29,17 @@ public final class FeedCombinator extends HttpServlet {
 		response.setHeader("Connection", "close");
 		response.setContentType("application/rss+xml;charset=UTF-8");
 
-		aggregate.link = request.getRequestURL().toString();
-
 		RssCombinator.aggregateFeed(response.getOutputStream(), aggregate);
 	}
 
 	// used in getLastModified()
 	private static final long cacheTimeout = TimeUnit.HOURS.toMillis(CatnapperConf.clientCacheTimeout());
 
+	/**
+	 * Exploits the "If-Modified-Since" header of the conditional GET request
+	 * to apply some caching behavior. Does not factor in possible updates
+	 * of the user feed that might have occurred in the meantime.
+	 */
 	@Override
 	protected long getLastModified(final HttpServletRequest request) {
 		final long now = System.currentTimeMillis() / 1000L * 1000L; // seconds

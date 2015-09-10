@@ -16,7 +16,6 @@ public class FeedAggregate {
 	public transient String fileContent;
 
 	public transient String link;
-	public transient String imageLink;
 
 	public String identifier;
 	public String title;
