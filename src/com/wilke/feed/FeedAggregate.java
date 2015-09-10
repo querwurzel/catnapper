@@ -7,7 +7,7 @@ import java.util.List;
 import com.wilke.feed.rss.RssFeed;
 import com.wilke.feed.rss.RssFetcher;
 
-//TODO RssFeed is way too specific, relaxe type!
+//TODO RssFeed is way too specific, relax type!
 public class FeedAggregate {
 
 	@Deprecated

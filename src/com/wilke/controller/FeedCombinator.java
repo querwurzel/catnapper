@@ -54,6 +54,9 @@ public final class FeedCombinator extends HttpServlet {
 		if (now > ifModifiedSince + cacheTimeout)
 			return now; // last request is too long ago
 
+		//TODO remove 'logging' after trial period
+		System.out.println(String.format("getLastModified: %s [%s] is using client side cache", request.getRemoteAddr(), request.getHeader("User-Agent") ));
+		
 		return ifModifiedSince; // no change since last request
 	}
 }
