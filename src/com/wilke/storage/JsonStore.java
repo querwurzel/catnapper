@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.json.Json;
@@ -51,7 +50,7 @@ public final class JsonStore implements Closeable {
 
 	private final Path path;
 
-	private final Alarm2 alarm = new Alarm2(() -> JsonStore.this.scheduleFileScanNow(), TimeUnit.SECONDS.toMillis(10));
+	private final Alarm2 alarm = new Alarm2(() -> JsonStore.this.scheduleFileScanNow(), 10);
 
 	private final Thread fileWatcher = new Thread() {
 		@Override
@@ -197,19 +196,21 @@ public final class JsonStore implements Closeable {
 			return newUrls; // user input syntax errors, abort
 		}
 
-		try (OutputStream output = new FileOutputStream(aggregate.fileName, Boolean.FALSE)) {
-			final JsonObjectBuilder feed = Json.createObjectBuilder();
-			feed.add(JsonFormat.IDENTIFIER, aggregate.identifier);
-			feed.add(JsonFormat.TITLE, aggregate.title);
-			feed.add(JsonFormat.DESCRIPTION, aggregate.description);
-			feed.add(JsonFormat.URLS, urls);
+		synchronized (aggregate.identifier) {
+			try (OutputStream output = new FileOutputStream(aggregate.fileName, Boolean.FALSE)) {
+				final JsonObjectBuilder feed = Json.createObjectBuilder();
+				feed.add(JsonFormat.IDENTIFIER, aggregate.identifier);
+				feed.add(JsonFormat.TITLE, aggregate.title);
+				feed.add(JsonFormat.DESCRIPTION, aggregate.description);
+				feed.add(JsonFormat.URLS, urls);
 
-			final Map<String, Boolean> config = new HashMap<>();
-			config.put(JsonGenerator.PRETTY_PRINTING, Boolean.TRUE);
+				final Map<String, Boolean> config = new HashMap<>();
+				config.put(JsonGenerator.PRETTY_PRINTING, Boolean.TRUE);
 
-			Json.createWriterFactory(config).createWriter(output).writeObject(feed.build());
-		} catch (final IOException e) {
-			e.printStackTrace();
+				Json.createWriterFactory(config).createWriter(output).writeObject(feed.build());
+			} catch (final IOException e) {
+				e.printStackTrace();
+			}
 		}
 
 		return newUrls;

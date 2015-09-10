@@ -12,13 +12,13 @@ import java.util.concurrent.TimeUnit;
  * After instantiation the alarm is not yet set, therefore call reset() or start().
  * An alarm instance is immutable and thread-safe.
  * After timeout the action is only triggered once!
- * 
+ *
  * (The successor of Alarm no longer using Timer and TimerTasks internally.)
  */
 public final class Alarm2 {
 
-    private final static ScheduledExecutorService scheduler =
-    		Executors.newScheduledThreadPool(1, DaemonThreadFactory.INSTANCE);
+	private final static ScheduledExecutorService scheduler =
+			Executors.newScheduledThreadPool(1, DaemonThreadFactory.INSTANCE);
 
 	private final Runnable action;
 	private final TimeUnit timeUnit;
@@ -27,12 +27,12 @@ public final class Alarm2 {
 	private ScheduledFuture<?> alarm;
 
 	/**
-	 * @param timeout delay in milliseconds
+	 * @param timeout delay in seconds
 	 * @exception NullPointerException if task is null
 	 * @exception IllegalArgumentException if timeout < 1
 	 */
 	public Alarm2(final Runnable action, final long timeout) {
-		this(action, timeout, TimeUnit.MILLISECONDS);
+		this(action, timeout, TimeUnit.SECONDS);
 	}
 
 	/**
@@ -72,11 +72,11 @@ public final class Alarm2 {
 	public synchronized void reset() {
 		this.stop();
 		this.alarm = scheduler.schedule(() -> {
-            try {
-                Alarm2.this.action.run();
-            } finally {
-                Alarm2.this.stop(); // upkeep
-            }
-        }, this.timeout, this.timeUnit);
+			try {
+				Alarm2.this.action.run();
+			} finally {
+				Alarm2.this.stop(); // upkeep
+			}
+		}, this.timeout, this.timeUnit);
 	}
 }
