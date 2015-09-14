@@ -41,9 +41,9 @@ public final class CatnapperConf implements ServletContextListener {
 		CatnapperConf.pathToFeeds = param;
 		CatnapperConf.store = new JsonStore(CatnapperConf.pathToFeeds);
 
-		System.out.println("Parameter (pathToFeeds)        : " + pathToFeeds);
-		System.out.println("Parameter (maxConcTasks)       : " + maxConcTasks);
-		System.out.println("Parameter (clientCacheTimeout) : " + clientCacheTimeout);
+		System.out.println("Parameter [pathToFeeds]        : " + pathToFeeds);
+		System.out.println("Parameter [maxConcTasks]       : " + maxConcTasks);
+		System.out.println("Parameter [clientCacheTimeout] : " + clientCacheTimeout);
 	}
 
 	@Override
