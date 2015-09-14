@@ -181,12 +181,12 @@ public final class JsonStore implements Closeable {
 	}
 
 	@Deprecated
-	public String writeFile(final FeedAggregate aggregate, final String newUrls) {
+	public String writeFile(final FeedAggregate aggregate, String newUrls) {
 		JsonArray urls;
 
 		// user input validation, quick and dirty
 		if (newUrls == null || newUrls.isEmpty())
-			return newUrls;
+			newUrls = "[]"; // empty JSON array
 		try (Reader reader = new StringReader(newUrls)) {
 			urls = Json.createReader(reader).readArray();
 			for (int idx = 0; idx < urls.size(); idx++)
