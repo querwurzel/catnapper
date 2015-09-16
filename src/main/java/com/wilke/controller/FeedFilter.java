@@ -18,7 +18,7 @@ import com.wilke.feed.FeedAggregate;
 @WebFilter(servletNames={"FeedCombinator", "FeedSettings"})
 public class FeedFilter implements Filter {
 
-	public static final String FEED_AGGREGATE = "feedAggregate";
+	static final String FEED_AGGREGATE = "feedAggregate";
 
 	@Override
 	public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain) throws IOException, ServletException {
