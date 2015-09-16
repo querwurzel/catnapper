@@ -159,16 +159,15 @@ public final class JsonStore implements Closeable {
 			if (json.isEmpty())
 				throw new JsonException("JSON file is empty");
 
-			final FeedAggregate feed = new FeedAggregate();
-			// Deprecated
-			feed.fileName = path.toAbsolutePath().toString();
-			feed.fileContent = json.getJsonArray(JsonFormat.URLS).toString();
-			feed.identifier = json.getString(JsonFormat.IDENTIFIER, null);
-			if (feed.identifier == null || feed.identifier.isEmpty())
-				throw new JsonException("JSON feed item does not have an identifier (" + json + ")");
+			final String identifier = json.getString(JsonFormat.IDENTIFIER, null);
+			if (identifier == null || identifier.isEmpty())
+				throw new JsonException("JSON feed item does not have an identifier [" + json + "]");
 
+			final FeedAggregate feed = new FeedAggregate(identifier);
 			feed.title = json.getString(JsonFormat.TITLE);
 			feed.description = json.getString(JsonFormat.DESCRIPTION);
+			feed.fileName = path.toAbsolutePath().toString();
+			feed.fileContent = json.getJsonArray(JsonFormat.URLS).toString();
 
 			final JsonArray urls = json.getJsonArray(JsonFormat.URLS);
 			for (int idx = 0; idx < urls.size(); idx++)

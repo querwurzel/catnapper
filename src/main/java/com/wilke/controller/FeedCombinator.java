@@ -32,9 +32,6 @@ public final class FeedCombinator extends HttpServlet {
 		RssCombinator.aggregateFeed(response.getOutputStream(), aggregate);
 	}
 
-	// used in getLastModified()
-	private static final long cacheTimeout = TimeUnit.HOURS.toMillis(CatnapperConf.clientCacheTimeout());
-
 	/**
 	 * Exploits the "If-Modified-Since" header of the conditional GET request
 	 * to apply some caching behavior. Does not factor in possible updates
@@ -51,7 +48,7 @@ public final class FeedCombinator extends HttpServlet {
 			ifModifiedSince = -1L;
 		}
 
-		if (now > ifModifiedSince + cacheTimeout)
+		if (now > ifModifiedSince + TimeUnit.HOURS.toMillis(CatnapperConf.clientCacheTimeout()))
 			return now; // last request is too long ago
 
 		return ifModifiedSince; // no change since last request

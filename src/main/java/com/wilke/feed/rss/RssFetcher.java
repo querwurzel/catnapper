@@ -28,7 +28,7 @@ public class RssFetcher {
 
 	private static final RssFeed END_OF_QUEUE = new RssFeed(); // poison pill
 
-	private static final ExecutorService ioPool =
+	private static final ExecutorService connectorPool =
 			Executors.newFixedThreadPool(CatnapperConf.maxConcTasks(), DaemonThreadFactory.INSTANCE);
 
 	private static final ExecutorService collectorPool =
@@ -54,7 +54,7 @@ public class RssFetcher {
 		final BlockingQueue<RssFeed> queue = new ArrayBlockingQueue<>(urls.size() + 1); // including poison pill
 
 		collectorPool.submit(new RssFetchCollector(queue, urls));
-
+		
 		return new Iterator<RssFeed>() {
 			private boolean isClosed;
 			private RssFeed nextItem;
@@ -95,7 +95,7 @@ public class RssFetcher {
 	}
 
 	private static class RssFetchCollector implements Runnable {
-		private final CompletionService<RssFeed> collector = new ExecutorCompletionService<RssFeed>(ioPool);
+		private final CompletionService<RssFeed> collector = new ExecutorCompletionService<RssFeed>(connectorPool);
 		private final BlockingQueue<RssFeed> queue;
 		private final List<String> urls;
 
