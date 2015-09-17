@@ -8,8 +8,6 @@ import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletionService;
@@ -17,6 +15,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import javax.xml.stream.XMLStreamException;
@@ -26,12 +25,7 @@ import com.wilke.util.DaemonThreadFactory;
 
 public class RssFetcher {
 
-	private static final RssFeed END_OF_QUEUE = new RssFeed(); // poison pill
-
 	private static final ExecutorService connectorPool =
-			Executors.newFixedThreadPool(CatnapperConf.maxConcTasks(), DaemonThreadFactory.INSTANCE);
-
-	private static final ExecutorService collectorPool =
 			Executors.newFixedThreadPool(CatnapperConf.maxConcTasks(), DaemonThreadFactory.INSTANCE);
 
 	/**
@@ -48,15 +42,17 @@ public class RssFetcher {
 	 * No automatic feed type recognition, RSS 2.0 via HTTP/S is expected!
 	 *
 	 * The iterator returned is not thread-safe.
-	 * Its hasNext() method may block for {@value #connectTimeout}+{@value #readTimeout} milliseconds at most.
+	 * Its {@link java.util.Iterator#hasNext()} and {@link java.util.Iterator#next()} methods may block for {@value #connectTimeout}+{@value #readTimeout} milliseconds at most.
 	 */
 	public static Iterator<RssFeed> fetchFeeds(final List<String> urls) {
-		final BlockingQueue<RssFeed> queue = new ArrayBlockingQueue<>(urls.size() + 1); // including poison pill
+		final CompletionService<RssFeed> collector = new ExecutorCompletionService<RssFeed>(connectorPool);
 
-		collectorPool.submit(new RssFetchCollector(queue, urls));
-		
+		for (final String url : urls)
+			collector.submit(new RssFetchTask(url));
+
 		return new Iterator<RssFeed>() {
 			private boolean isClosed;
+			private int count = urls.size();
 			private RssFeed nextItem;
 
 			@Override
@@ -65,59 +61,47 @@ public class RssFetcher {
 					return Boolean.FALSE;
 
 				try {
-					final RssFeed feed = queue.poll(connectTimeout + readTimeout, TimeUnit.MILLISECONDS);
+					for (this.count--; this.count > 0;) {
+						final Future<RssFeed> future = collector.poll(connectTimeout + readTimeout + 500, TimeUnit.MILLISECONDS);
+						if (future == null) // not a single task returned despite 500ms extra time; assuming complete failure
+							break;
 
-					if (feed == null || feed == END_OF_QUEUE)
-						return !(this.isClosed = Boolean.TRUE);
+						try {
+							final RssFeed feed = future.get(); // calling get() since a future was returned supposedly holding a feed
+							if (feed == null)
+								continue;
 
-					return (this.nextItem = feed) != null;
+							return (this.nextItem = feed) != null;
+						} catch (final CancellationException | ExecutionException e) {
+							e.getCause().printStackTrace();
+						}
+					}
+
+					return !(this.isClosed = Boolean.TRUE);
 				} catch (final InterruptedException e) {
+					this.isClosed = Boolean.TRUE;
 					throw new ConcurrentModificationException(e);
 				}
 			}
 
 			@Override
 			public RssFeed next() {
-				if (this.nextItem != null || this.hasNext()) {
-					final RssFeed nextItem = this.nextItem;
-					this.nextItem = null;
-					return nextItem;
-				}
+				if (this.nextItem == null && !this.hasNext())
+					throw new NoSuchElementException();
 
-				throw new NoSuchElementException();
+				final RssFeed current = this.nextItem;
+				this.nextItem = null;
+				return current;
 			}
 
 			@Override
 			public void remove() {
+				if (this.nextItem == null && this.isClosed)
+					throw new IllegalStateException();
+
 				this.nextItem = null;
 			}
 		};
-	}
-
-	private static class RssFetchCollector implements Runnable {
-		private final CompletionService<RssFeed> collector = new ExecutorCompletionService<RssFeed>(connectorPool);
-		private final BlockingQueue<RssFeed> queue;
-		private final List<String> urls;
-
-		public RssFetchCollector(final BlockingQueue<RssFeed> queue, final List<String> urls) {
-			this.queue = queue;
-			this.urls  = urls;
-		}
-
-		@Override
-		public void run() {
-			for (final String url : this.urls)
-				this.collector.submit(new RssFetchTask(url));
-
-			for (int idx = 0; idx < this.urls.size(); idx++)
-				try {
-					this.queue.add(this.collector.take().get()); // each call blocks
-				} catch (InterruptedException | CancellationException | ExecutionException e) {
-					e.getCause().printStackTrace();
-				}
-
-			this.queue.add(RssFetcher.END_OF_QUEUE);
-		}
 	}
 
 	private static class RssFetchTask implements Callable<RssFeed> {

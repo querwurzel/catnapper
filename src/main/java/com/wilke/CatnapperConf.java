@@ -36,14 +36,15 @@ public final class CatnapperConf implements ServletContextListener {
 		if (param == null || param.isEmpty()) {
 			param = ctx.getRealPath("/WEB-INF/conf/");
 			if (param == null)
-				throw new RuntimeException("CatnapperConf: Failed to translate config folder to filesystem path. Make sure .war file was extracted!");
+				throw new RuntimeException("Catnapper: Failed to translate config folder to filesystem path. Make sure the .war file was extracted!");
 		}
 		CatnapperConf.pathToFeeds = param;
-		CatnapperConf.store = new JsonStore(CatnapperConf.pathToFeeds);
 
 		System.out.println("Parameter [pathToFeeds]        : " + pathToFeeds);
 		System.out.println("Parameter [maxConcTasks]       : " + maxConcTasks);
 		System.out.println("Parameter [clientCacheTimeout] : " + clientCacheTimeout);
+
+		CatnapperConf.store = new JsonStore(CatnapperConf.pathToFeeds);
 	}
 
 	@Override
