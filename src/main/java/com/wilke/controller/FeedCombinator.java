@@ -10,6 +10,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.stream.XMLStreamException;
 
 import com.wilke.CatnapperConf;
 import com.wilke.feed.FeedAggregate;
@@ -29,7 +30,12 @@ public final class FeedCombinator extends HttpServlet {
 		response.setHeader("Connection", "close");
 		response.setContentType("application/rss+xml;charset=UTF-8");
 
-		RssCombinator.aggregateFeed(response.getOutputStream(), aggregate);
+		try {
+			RssCombinator.aggregateFeed(response.getOutputStream(), aggregate);
+		} catch (XMLStreamException e) {
+			e.printStackTrace();
+			throw new IOException(e);
+		}
 	}
 
 	/**

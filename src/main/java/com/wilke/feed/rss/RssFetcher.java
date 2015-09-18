@@ -51,9 +51,9 @@ public class RssFetcher {
 			collector.submit(new RssFetchTask(url));
 
 		return new Iterator<RssFeed>() {
+			private RssFeed nextItem;
 			private boolean isClosed;
 			private int count = urls.size();
-			private RssFeed nextItem;
 
 			@Override
 			public boolean hasNext() {
@@ -61,17 +61,17 @@ public class RssFetcher {
 					return Boolean.FALSE;
 
 				try {
-					for (this.count--; this.count > 0;) {
+					for (this.count--; this.count >= 0; this.count--) { // decrease counter on method entry and per loop
 						final Future<RssFeed> future = collector.poll(connectTimeout + readTimeout + 500, TimeUnit.MILLISECONDS);
-						if (future == null) // not a single task returned despite 500ms extra time; assuming complete failure
+						if (future == null) // once the timeout has been reached and no task returned, assume complete failure
 							break;
 
 						try {
-							final RssFeed feed = future.get(); // calling get() since a future was returned supposedly holding a feed
-							if (feed == null)
+							this.nextItem = future.get(); // calling get() since a future was returned supposedly holding a feed already
+							if (this.nextItem == null)
 								continue;
 
-							return (this.nextItem = feed) != null;
+							return Boolean.TRUE;
 						} catch (final CancellationException | ExecutionException e) {
 							e.getCause().printStackTrace();
 						}
@@ -96,7 +96,7 @@ public class RssFetcher {
 
 			@Override
 			public void remove() {
-				if (this.nextItem == null && this.isClosed)
+				if (this.isClosed || this.nextItem == null)
 					throw new IllegalStateException();
 
 				this.nextItem = null;

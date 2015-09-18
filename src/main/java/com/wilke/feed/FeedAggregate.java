@@ -31,6 +31,11 @@ public class FeedAggregate {
 
 	public final List<String> urls = new ArrayList<>();
 
+	/**
+	 * Immediately starts fetching the feeds represented by the URLs of this feed aggregate object in an asynchronous way.
+	 * 
+	 * @see com.wilke.feed.rss.RssFetcher#fetchFeeds(List)
+	 */
 	public Iterator<RssFeed> fetchFeeds() {
 		return RssFetcher.fetchFeeds(this.urls);
 	}
