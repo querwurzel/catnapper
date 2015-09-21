@@ -77,6 +77,7 @@ public class RssFetcher {
 						}
 					}
 
+					this.nextItem = null;
 					return !(this.isClosed = Boolean.TRUE);
 				} catch (final InterruptedException e) {
 					this.isClosed = Boolean.TRUE;
@@ -89,9 +90,7 @@ public class RssFetcher {
 				if (this.nextItem == null && !this.hasNext())
 					throw new NoSuchElementException();
 
-				final RssFeed current = this.nextItem;
-				this.nextItem = null;
-				return current;
+				return this.nextItem;
 			}
 
 			@Override
