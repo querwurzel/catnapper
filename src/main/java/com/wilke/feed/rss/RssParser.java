@@ -6,10 +6,15 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.wilke.feed.rss.RssFeed.RssChannel;
 import com.wilke.feed.rss.RssFeed.RssItem;
 
 public class RssParser {
+
+	private static final Logger log = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
 	private static final XMLInputFactory inputFactory = XMLInputFactory.newFactory();
 
@@ -43,14 +48,14 @@ public class RssParser {
 						feed.channel = parseChannel(in);
 					continue;
 				default:
-					System.err.println("Unsupported tag in rss: " + tag);
+					log.info("Unsupported tag in rss: {}", tag);
 					continue;
 				}
 			}
 		}
 
 		if (numChannels > 1)
-			System.err.println("Skipped " + (numChannels - 1) + " channels.");
+			log.info("Skipped {} channels.", numChannels - 1);
 
 		return feed;
 	}
@@ -79,7 +84,7 @@ public class RssParser {
 						channel.items.add(parseItem(in));
 						continue;
 					default:
-						System.err.println("Unsupported tag in channel: " + tag);
+						log.info("Unsupported tag in channel: {}", tag);
 						continue;
 					}
 				} else { // isEndElement()
@@ -122,7 +127,7 @@ public class RssParser {
 						item.pubDate = parseText(in);
 						continue;
 					default:
-						System.err.println("Unsupported tag in item: " + tag);
+						log.info("Unsupported tag in item: {}", tag);
 						continue;
 					}
 				} else { // isEndElement()

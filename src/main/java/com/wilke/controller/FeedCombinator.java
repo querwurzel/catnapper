@@ -12,6 +12,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLStreamException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.wilke.CatnapperConf;
 import com.wilke.feed.FeedAggregate;
 import com.wilke.feed.rss.RssCombinator;
@@ -23,6 +26,8 @@ public final class FeedCombinator extends HttpServlet {
 
 	private static final long serialVersionUID = -1262361487011189016L;
 
+	private static final Logger log = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 		final FeedAggregate aggregate = (FeedAggregate)request.getAttribute(FEED_AGGREGATE);
@@ -33,7 +38,7 @@ public final class FeedCombinator extends HttpServlet {
 		try {
 			RssCombinator.aggregateFeed(response.getOutputStream(), aggregate);
 		} catch (XMLStreamException e) {
-			e.printStackTrace();
+			log.error(e.getMessage());
 			throw new IOException(e);
 		}
 	}

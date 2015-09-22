@@ -38,10 +38,15 @@ import javax.json.JsonObjectBuilder;
 import javax.json.stream.JsonGenerator;
 import javax.json.stream.JsonParsingException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.wilke.feed.FeedAggregate;
 import com.wilke.util.Alarm2;
 
 public final class JsonStore implements Closeable {
+
+	private static final Logger log = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
 	// maps feed identifier to feed aggregate
 	private final Map<String, FeedAggregate> store = new HashMap<>();
@@ -64,6 +69,7 @@ public final class JsonStore implements Closeable {
 						if (!key.pollEvents().isEmpty())
 							JsonStore.this.scheduleFileScan();
 					} catch (final InterruptedException e) {
+						log.debug("FileWatcher has been interrupted, shutting down.");
 						return; // expected on close() call
 					}
 				} while (key.reset());
@@ -119,7 +125,7 @@ public final class JsonStore implements Closeable {
 			try {
 				feeds.add( this.parseFile(file) );
 			} catch (final JsonException e) {
-				e.printStackTrace(); // log and continue
+				log.warn("Could not parse json file: {}", e.getMessage()); // log and continue
 			}
 
 		try {
@@ -147,7 +153,7 @@ public final class JsonStore implements Closeable {
 				}
 			});
 		} catch (final IOException e) {
-			e.printStackTrace();
+			log.warn("Could not parse file tree: {}", e.getMessage());
 		}
 
 		return files;
@@ -191,7 +197,7 @@ public final class JsonStore implements Closeable {
 			for (int idx = 0; idx < urls.size(); idx++)
 				new URL(urls.getString(idx));
 		} catch (JsonException | IOException e) {
-			System.err.println("JsonStore Validation Error: " + e.getMessage());
+			log.info("JsonStore Validation Error: {}", e.getMessage());
 			return newUrls; // user input syntax errors, abort
 		}
 
@@ -208,7 +214,7 @@ public final class JsonStore implements Closeable {
 
 				Json.createWriterFactory(config).createWriter(output).writeObject(feed.build());
 			} catch (final IOException e) {
-				e.printStackTrace();
+				log.warn("Could not save json file: {}", e.getMessage());
 			}
 		}
 

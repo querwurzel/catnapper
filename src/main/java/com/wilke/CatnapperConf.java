@@ -5,11 +5,16 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.wilke.feed.FeedAggregate;
 import com.wilke.storage.JsonStore;
 
 @WebListener
 public final class CatnapperConf implements ServletContextListener {
+
+	private static final Logger log = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
 	private static volatile String pathToFeeds;
 	private static volatile int maxConcTasks = Runtime.getRuntime().availableProcessors() * 2;
@@ -40,9 +45,9 @@ public final class CatnapperConf implements ServletContextListener {
 		}
 		CatnapperConf.pathToFeeds = param;
 
-		System.out.println("Parameter [pathToFeeds]        : " + pathToFeeds);
-		System.out.println("Parameter [maxConcTasks]       : " + maxConcTasks);
-		System.out.println("Parameter [clientCacheTimeout] : " + clientCacheTimeout);
+		log.info("Parameter [pathToFeeds]        : {}", pathToFeeds);
+		log.info("Parameter [maxConcTasks]       : {}", maxConcTasks);
+		log.info("Parameter [clientCacheTimeout] : {}", clientCacheTimeout);
 
 		CatnapperConf.store = new JsonStore(CatnapperConf.pathToFeeds);
 	}
@@ -52,6 +57,10 @@ public final class CatnapperConf implements ServletContextListener {
 		final JsonStore ref = CatnapperConf.store;
 		if (ref != null)
 			ref.close();
+
+		// shutdown logback
+		if (LoggerFactory.getILoggerFactory() instanceof ch.qos.logback.classic.LoggerContext)
+			((ch.qos.logback.classic.LoggerContext)LoggerFactory.getILoggerFactory()).stop();
 	}
 
 	public static String pathToFeeds() {

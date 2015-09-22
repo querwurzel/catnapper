@@ -20,10 +20,15 @@ import java.util.concurrent.TimeUnit;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.wilke.CatnapperConf;
 import com.wilke.util.DaemonThreadFactory;
 
 public class RssFetcher {
+
+	private static final Logger log = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
 	private static final ExecutorService connectorPool =
 			Executors.newFixedThreadPool(CatnapperConf.maxConcTasks(), DaemonThreadFactory.INSTANCE);
@@ -73,7 +78,7 @@ public class RssFetcher {
 
 							return Boolean.TRUE;
 						} catch (final CancellationException | ExecutionException e) {
-							e.getCause().printStackTrace();
+							log.warn(e.getMessage());
 						}
 					}
 

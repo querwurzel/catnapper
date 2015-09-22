@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="false" scanPeriod="30 minutes" debug="false">
+
+	<variable name="base.dir" value="${java.io.tmpdir}/catnapper" />
+	<!-- Tomcat -->
+	<variable name="base.dir" value="${catalina.base:-${base.dir}}" />
+	<!-- Jetty -->
+	<variable name="base.dir" value="${jetty.base:-${base.dir}}" />
+
+	<appender name="LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${base.dir}/logs/catnapper.log</file>
+
+		<encoder>
+			<charset>utf-8</charset>
+			<pattern>%d{HH:mm:ss} %class #%method %-5level - %msg%n</pattern>
+		</encoder>
+
+		<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+			<fileNamePattern>catnapper.log.%i</fileNamePattern>
+			<minIndex>1</minIndex>
+			<maxIndex>3</maxIndex>
+		</rollingPolicy>
+
+		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<maxFileSize>10MB</maxFileSize>
+		</triggeringPolicy>
+	</appender>
+
+	<appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+		<appender-ref ref="LOG" />
+		<!-- somewhat expensive but unfortunately nice -->
+		<includeCallerData>true</includeCallerData>
+	</appender>
+
+	<root level="debug" additivity="true">
+		<appender-ref ref="ASYNC" />
+	</root>
+
+</configuration>
