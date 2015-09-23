@@ -74,7 +74,7 @@ public final class JsonStore implements Closeable {
 					}
 				} while (key.reset());
 			} catch (final IOException e) {
-				e.printStackTrace();
+				log.error(e.getMessage());
 			}
 		}
 	};
