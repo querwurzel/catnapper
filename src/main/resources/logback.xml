@@ -32,7 +32,7 @@
 		<includeCallerData>true</includeCallerData>
 	</appender>
 
-	<root level="debug" additivity="true">
+	<root level="info" additivity="true">
 		<appender-ref ref="ASYNC" />
 	</root>
 
