@@ -44,8 +44,9 @@ public class RssParser {
 					continue;
 				case RssChannel.CHANNEL:
 					numChannels++;
-					if (numChannels == 1) // TODO support multiple channels
-						feed.channel = parseChannel(in);
+					if (numChannels > 1)
+			            throw new XMLStreamException("Feed has more than one channel."); // TODO support multiple channels
+					feed.channel = parseChannel(in);
 					continue;
 				default:
 					log.info("Unsupported tag in rss: {}", tag);
@@ -53,9 +54,6 @@ public class RssParser {
 				}
 			}
 		}
-
-		if (numChannels > 1)
-			log.info("Skipped {} channels.", numChannels - 1);
 
 		return feed;
 	}

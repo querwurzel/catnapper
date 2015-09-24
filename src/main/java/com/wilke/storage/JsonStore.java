@@ -79,7 +79,7 @@ public final class JsonStore implements Closeable {
 		}
 	};
 
-	private static class JsonFormat {
+	private final class JsonFormat {
 		public static final String IDENTIFIER = "identifier";
 		public static final String TITLE = "title";
 		public static final String DESCRIPTION = "description";
@@ -153,7 +153,7 @@ public final class JsonStore implements Closeable {
 				}
 			});
 		} catch (final IOException e) {
-			log.warn("Could not parse file tree: {}", e.getMessage());
+			log.warn("Could not scan file tree: {}", e.getMessage());
 		}
 
 		return files;
@@ -197,7 +197,7 @@ public final class JsonStore implements Closeable {
 			for (int idx = 0; idx < urls.size(); idx++)
 				new URL(urls.getString(idx));
 		} catch (JsonException | IOException e) {
-			log.info("JsonStore Validation Error: {}", e.getMessage());
+			log.info("User input validation error: {}", e.getMessage());
 			return newUrls; // user input syntax errors, abort
 		}
 

@@ -10,7 +10,7 @@
 <h1>${requestScope.title}</h1>
 
 <form method="post" action="">
-	<textarea id="feedUrls" name="feedUrls" style="height:400px;width:95%;display:block;font-size:1.5em;font-family:monospace;" cols="20" rows="10">${requestScope.feedUrls}</textarea>
+	<textarea id="feedUrls" name="feedUrls" autocomplete="off" style="height:400px;width:95%;display:block;font-size:1.5em;font-family:monospace;" cols="20" rows="10">${requestScope.feedUrls}</textarea>
 	<input type="submit" value="Save" />
 	<span style="color:orange">Note: updating takes some time!</span>
 </form>
