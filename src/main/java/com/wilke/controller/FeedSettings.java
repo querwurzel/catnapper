@@ -37,8 +37,8 @@ public class FeedSettings extends HttpServlet {
 			feedUrls = aggregate.fileContent;
 		}
 
-		response.setHeader("Cache-Control","must-revalidate, max-age=10"); // 10 seconds in accordance with the JsonStore
-		response.setDateHeader("Expires", System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(10));
+		response.setHeader("Cache-Control","public, max-age=12"); // at least 10 seconds in accordance with the JsonStore
+		response.setDateHeader("Expires", System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(12));
 		response.setContentType("text/html;charset=UTF-8");
 
 		request.setAttribute("title", aggregate.title);

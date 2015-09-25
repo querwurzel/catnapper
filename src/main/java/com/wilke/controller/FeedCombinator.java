@@ -33,12 +33,13 @@ public final class FeedCombinator extends HttpServlet {
 		final FeedAggregate aggregate = (FeedAggregate)request.getAttribute(FEED_AGGREGATE);
 
 		response.setHeader("Connection", "close");
+//		response.setHeader("ETag", Long.toString(System.currentTimeMillis())); // TODO support etag caching
 		response.setContentType("application/rss+xml;charset=UTF-8");
 
 		try {
 			RssCombinator.aggregateFeed(response.getOutputStream(), aggregate);
 		} catch (XMLStreamException e) {
-			log.error(e.getMessage());
+			log.error("Could not aggregate user feed '{}': {}", aggregate.identifier, e.toString());
 			throw new IOException(e);
 		}
 	}

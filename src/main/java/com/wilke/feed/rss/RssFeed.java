@@ -6,13 +6,10 @@ import java.util.List;
 public class RssFeed {
 
 	public static final String RSS = "rss";
-	public static final String VERSION = "version";
+	public static final String VERSION_ATTRIBUTE = "version";
+	public static final String VERSION_VALUE = "2.0";
 
-	@Deprecated
 	public RssChannel channel;
-
-	// multiple channels not yet supported
-	public final List<RssChannel> channels = new ArrayList<>();
 
 	public static class RssChannel {
 		public static final String CHANNEL = "channel";

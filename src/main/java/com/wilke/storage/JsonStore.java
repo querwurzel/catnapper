@@ -74,7 +74,7 @@ public final class JsonStore implements Closeable {
 					}
 				} while (key.reset());
 			} catch (final IOException e) {
-				log.error(e.getMessage());
+				log.error(e.toString());
 			}
 		}
 	};
@@ -125,7 +125,7 @@ public final class JsonStore implements Closeable {
 			try {
 				feeds.add( this.parseFile(file) );
 			} catch (final JsonException e) {
-				log.warn("Could not parse json file: {}", e.getMessage()); // log and continue
+				log.warn("Could not parse json file: {}", e.toString()); // log and continue
 			}
 
 		try {
@@ -153,7 +153,7 @@ public final class JsonStore implements Closeable {
 				}
 			});
 		} catch (final IOException e) {
-			log.warn("Could not scan file tree: {}", e.getMessage());
+			log.warn("Could not scan file tree: {}", e.toString());
 		}
 
 		return files;
@@ -185,6 +185,11 @@ public final class JsonStore implements Closeable {
 		}
 	}
 
+	private static final Map<String, Boolean> jsonConfig = new HashMap<>();
+	static {
+		jsonConfig.put(JsonGenerator.PRETTY_PRINTING, Boolean.TRUE);
+	}
+
 	@Deprecated
 	public String writeFile(final FeedAggregate aggregate, String newUrls) {
 		JsonArray urls;
@@ -197,7 +202,7 @@ public final class JsonStore implements Closeable {
 			for (int idx = 0; idx < urls.size(); idx++)
 				new URL(urls.getString(idx));
 		} catch (JsonException | IOException e) {
-			log.info("User input validation error: {}", e.getMessage());
+			log.debug("User input validation error: {}", e.toString());
 			return newUrls; // user input syntax errors, abort
 		}
 
@@ -209,12 +214,9 @@ public final class JsonStore implements Closeable {
 				feed.add(JsonFormat.DESCRIPTION, aggregate.description);
 				feed.add(JsonFormat.URLS, urls);
 
-				final Map<String, Boolean> config = new HashMap<>();
-				config.put(JsonGenerator.PRETTY_PRINTING, Boolean.TRUE);
-
-				Json.createWriterFactory(config).createWriter(output).writeObject(feed.build());
+				Json.createWriterFactory(jsonConfig).createWriter(output).writeObject(feed.build());
 			} catch (final IOException e) {
-				log.warn("Could not save json file: {}", e.getMessage());
+				log.warn("Could not save json file: {}", e.toString());
 			}
 		}
 

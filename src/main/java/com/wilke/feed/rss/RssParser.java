@@ -17,10 +17,10 @@ public class RssParser {
 	private static final Logger log = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
 	private static final XMLInputFactory inputFactory = XMLInputFactory.newFactory();
-
 	static {
-		// to catch &specialEntities;
 		inputFactory.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
+		inputFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
+		inputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
 	}
 
 	/**
@@ -28,61 +28,73 @@ public class RssParser {
 	 * @throws XMLStreamException
 	 */
 	public static RssFeed parseFeed(final InputStream stream) throws XMLStreamException {
-		final XMLStreamReader in = inputFactory.createXMLStreamReader(stream);
-
+		final XMLStreamReader reader = inputFactory.createXMLStreamReader(stream);
 		final RssFeed feed = new RssFeed();
-		int numChannels = 0;
+		boolean isRSS = Boolean.FALSE;
 
-		while (in.hasNext()) {
-			in.next();
+		try {
+			tagLoop:
+			while (reader.hasNext()) {
+				reader.next();
 
-			if (in.isStartElement()) {
-				final String tag = in.getLocalName();
+				if (reader.isStartElement()) {
+					final String tag = reader.getLocalName();
 
-				switch (tag) {
-				case RssFeed.RSS:
-					continue;
-				case RssChannel.CHANNEL:
-					numChannels++;
-					if (numChannels > 1)
-			            throw new XMLStreamException("Feed has more than one channel."); // TODO support multiple channels
-					feed.channel = parseChannel(in);
-					continue;
-				default:
-					log.info("Unsupported tag in rss: {}", tag);
-					continue;
+					if (isRSS) { // RSS check passed
+						switch (tag) {
+						case RssChannel.CHANNEL:
+							feed.channel = parseChannel(reader);
+							break;
+						default:
+							log.debug("Unsupported tag in rss: {}", tag);
+							continue;
+						}
+					} else { // RSS check
+						if (RssFeed.RSS.equals(tag))
+							for (int idx = 0; idx < reader.getAttributeCount(); idx++)
+								if (RssFeed.VERSION_ATTRIBUTE.equals(reader.getAttributeLocalName(idx)))
+									if (RssFeed.VERSION_VALUE.equals(reader.getAttributeValue(idx))) {
+										isRSS = Boolean.TRUE;
+										continue tagLoop;
+									}
+
+						throw new XMLStreamException("Invalid RSS feed, either none found or unsupported version");
+					}
 				}
 			}
+		} finally {
+			if (reader != null)
+				reader.close();
 		}
 
 		return feed;
 	}
 
-	private static RssChannel parseChannel(final XMLStreamReader in) throws XMLStreamException {
+	private static RssChannel parseChannel(final XMLStreamReader reader) throws XMLStreamException {
 		final RssChannel channel = new RssChannel();
 
-		while (in.hasNext()) {
-			in.next();
+		while (reader.hasNext()) {
+			reader.next();
 
-			if (in.isStartElement() || in.isEndElement()) {
-				final String tag = in.getLocalName();
+			if (reader.isStartElement() || reader.isEndElement()) {
+				final String tag = reader.getLocalName();
 
-				if (in.isStartElement()) {
+				if (reader.isStartElement()) {
 					switch (tag) {
 					case RssChannel.TITLE:
-						channel.title = parseText(in);
+						channel.title = parseText(reader);
 						continue;
 					case RssChannel.LINK:
-						channel.link = parseText(in);
+						channel.link = parseText(reader);
 						continue;
 					case RssChannel.DESCRIPTION:
-						channel.description = parseText(in);
+						channel.description = parseText(reader);
 						continue;
 					case RssItem.ITEM:
-						channel.items.add(parseItem(in));
+						channel.items.add(parseItem(reader));
 						continue;
 					default:
-						log.info("Unsupported tag in channel: {}", tag);
+						log.debug("Unsupported tag in channel: {}", tag);
 						continue;
 					}
 				} else { // isEndElement()
@@ -92,40 +104,40 @@ public class RssParser {
 			}
 		}
 
-		throw new XMLStreamException("Channel was never closed");
+		throw new XMLStreamException("Invalid RSS channel, either none found or not well-formed");
 	}
 
-	private static RssItem parseItem(final XMLStreamReader in) throws XMLStreamException {
+	private static RssItem parseItem(final XMLStreamReader reader) throws XMLStreamException {
 		final RssItem item = new RssItem();
 
-		while (in.hasNext()) {
-			in.next();
+		while (reader.hasNext()) {
+			reader.next();
 
-			if (in.isStartElement() || in.isEndElement()) {
-				final String tag = in.getLocalName();
+			if (reader.isStartElement() || reader.isEndElement()) {
+				final String tag = reader.getLocalName();
 
-				if (in.isStartElement()) {
+				if (reader.isStartElement()) {
 					switch (tag) {
 					case RssItem.TITLE:
-						item.title = parseText(in);
+						item.title = parseText(reader);
 						continue;
 					case RssItem.CATEGORY:
-						item.category = parseText(in);
+						item.category = parseText(reader);
 						continue;
 					case RssItem.LINK:
-						item.link = parseText(in);
+						item.link = parseText(reader);
 						continue;
 					case RssItem.GUID:
-						item.guid = parseText(in);
+						item.guid = parseText(reader);
 						continue;
 					case RssItem.DESCRIPTION:
-						item.description = parseText(in);
+						item.description = parseText(reader);
 						continue;
 					case RssItem.PUBDATE:
-						item.pubDate = parseText(in);
+						item.pubDate = parseText(reader);
 						continue;
 					default:
-						log.info("Unsupported tag in item: {}", tag);
+						log.debug("Unsupported tag in item: {}", tag);
 						continue;
 					}
 				} else { // isEndElement()
@@ -135,11 +147,11 @@ public class RssParser {
 			}
 		}
 
-		throw new XMLStreamException("Item was never closed");
+		throw new XMLStreamException("Invalid RSS channel item, either none found or not well-formed");
 	}
 
-	private static String parseText(final XMLStreamReader in) throws XMLStreamException {
-		in.next();
-		return in.isCharacters() ? in.getText() : "";
+	private static String parseText(final XMLStreamReader reader) throws XMLStreamException {
+		reader.next();
+		return reader.isCharacters() ? reader.getText() : "";
 	}
 }

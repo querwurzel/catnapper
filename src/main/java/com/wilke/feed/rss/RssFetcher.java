@@ -1,6 +1,7 @@
 package com.wilke.feed.rss;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -41,7 +42,7 @@ public class RssFetcher {
 	/**
 	 * Timeout in milliseconds to be used when a connection is established to a given URL to read all data.
 	 */
-	public static final int readTimeout = 6000;
+	public static final int readTimeout = 4000;
 
 	/**
 	 * No automatic feed type recognition, RSS 2.0 via HTTP/S is expected!
@@ -68,17 +69,22 @@ public class RssFetcher {
 				try {
 					for (this.count--; this.count >= 0; this.count--) { // decrease counter on method entry and per loop
 						final Future<RssFeed> future = collector.poll(connectTimeout + readTimeout + 500, TimeUnit.MILLISECONDS);
-						if (future == null) // once the timeout has been reached and no task returned, assume complete failure
+						if (future == null) { // once the timeout has been reached and no (further) task returned, assume complete failure
+							log.debug("Timeout reached, {} RSS feeds outstanding", this.count + 1);
 							break;
+						}
 
 						try {
-							this.nextItem = future.get(); // calling get() since a future was returned supposedly holding a feed already
+							this.nextItem = future.get(); // calling get() since a future was returned supposedly holding a result already
 							if (this.nextItem == null)
 								continue;
 
 							return Boolean.TRUE;
 						} catch (final CancellationException | ExecutionException e) {
-							log.warn(e.getMessage());
+							final StringBuilder trace = new StringBuilder("RSS could not be fetched");
+							for (Throwable t = e.getCause(); t != null; t = t.getCause())
+								trace.append(System.lineSeparator()).append("\t").append("Caused by: ").append(t.toString());
+							log.warn(trace.toString());
 						}
 					}
 
@@ -133,10 +139,14 @@ public class RssFetcher {
 				conn.setUseCaches(Boolean.FALSE);
 				conn.connect();
 
-				if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) // 200 (through naive)
-					throw new IOException(String.format("Request unsuccessful (HTTP %d)", conn.getResponseCode()));
+				try (final InputStream stream = conn.getInputStream()) {
+					if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) // 200 (through naive)
+						throw new IOException(String.format("Request unsuccessful (HTTP %d)", conn.getResponseCode()));
 
-				return RssParser.parseFeed(conn.getInputStream());
+					return RssParser.parseFeed(conn.getInputStream());
+				} finally {
+					conn.disconnect();
+				}
 			} catch (IOException | XMLStreamException e) {
 				throw new IOException(this.url, e); // enrich exception by url
 			}
