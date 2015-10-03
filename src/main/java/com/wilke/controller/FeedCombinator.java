@@ -31,6 +31,7 @@ public final class FeedCombinator extends HttpServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 		final FeedAggregate aggregate = (FeedAggregate)request.getAttribute(FEED_AGGREGATE);
+		aggregate.link = request.getRequestURL().toString(); // apply feed url; optimistic approach as dependent on infrastructure
 
 		response.setHeader("Connection", "close");
 //		response.setHeader("ETag", Long.toString(System.currentTimeMillis())); // TODO support etag caching

@@ -32,8 +32,6 @@ public class FeedFilter implements Filter {
 			httpResp.reset();
 			httpResp.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		} else {
-			aggregate.link = httpReq.getRequestURL().toString(); // apply feed url
-			
 			httpReq.setAttribute(FEED_AGGREGATE, aggregate);
 			chain.doFilter(httpReq, httpResp);
 		}
