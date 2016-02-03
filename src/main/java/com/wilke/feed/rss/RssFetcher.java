@@ -88,11 +88,12 @@ public class RssFetcher {
 						}
 					}
 
-					this.nextItem = null;
-					return !(this.isClosed = Boolean.TRUE);
+					return Boolean.FALSE;
 				} catch (final InterruptedException e) {
-					this.isClosed = Boolean.TRUE;
 					throw new ConcurrentModificationException(e);
+				} finally {
+					this.nextItem = null;
+					this.isClosed = Boolean.TRUE;
 				}
 			}
 
