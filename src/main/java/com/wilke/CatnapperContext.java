@@ -12,29 +12,32 @@ import com.wilke.feed.FeedAggregate;
 import com.wilke.storage.JsonStore;
 
 @WebListener
-public final class CatnapperConf implements ServletContextListener {
+public final class CatnapperContext implements ServletContextListener {
 
-	private static final Logger log = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+	private static final Logger log = LoggerFactory.getLogger(CatnapperContext.class);
 
-	private static volatile String pathToFeeds;
-	private static volatile int maxConcTasks = Runtime.getRuntime().availableProcessors() * 2;
-	private static volatile int clientCacheTimeout = 3;
+	private static volatile CatnapperContext INSTANCE;
 
-	private static JsonStore store;
+    private volatile JsonStore store;
+    private volatile String pathToFeeds;
+    private volatile int maxConcTasks = Runtime.getRuntime().availableProcessors() * 2;
+    private volatile int clientCacheTimeout = 3;
 
 	@Override
 	public void contextInitialized(final ServletContextEvent sce) {
 		final ServletContext ctx = sce.getServletContext();
 
+        CatnapperContext.INSTANCE = this;
+
 		// maximum concurrent tasks
 		String param = ctx.getInitParameter("maxConcTasks");
 		if (param != null && !param.isEmpty())
-			CatnapperConf.maxConcTasks = Integer.valueOf(param);
+			this.maxConcTasks = Integer.valueOf(param);
 
 		// timeout of client-side conditional get
 		param = ctx.getInitParameter("clientCacheTimeout");
 		if (param != null && !param.isEmpty())
-			CatnapperConf.clientCacheTimeout = Integer.valueOf(param);
+			this.clientCacheTimeout = Integer.valueOf(param);
 
 		// path for JsonStore
 		param = ctx.getInitParameter("pathToFeeds");
@@ -43,18 +46,18 @@ public final class CatnapperConf implements ServletContextListener {
 			if (param == null)
 				throw new RuntimeException("Catnapper: Failed to translate config folder to filesystem path. Make sure the .war file was extracted!");
 		}
-		CatnapperConf.pathToFeeds = param;
+		this.pathToFeeds = param;
 
 		log.info("Parameter [pathToFeeds]        : {}", pathToFeeds);
 		log.info("Parameter [maxConcTasks]       : {}", maxConcTasks);
 		log.info("Parameter [clientCacheTimeout] : {}", clientCacheTimeout);
 
-		CatnapperConf.store = new JsonStore(CatnapperConf.pathToFeeds);
+		this.store = new JsonStore(this.pathToFeeds);
 	}
 
 	@Override
 	public void contextDestroyed(final ServletContextEvent sce) {
-		final JsonStore ref = CatnapperConf.store;
+		final JsonStore ref = this.store;
 		if (ref != null)
 			ref.close();
 
@@ -63,25 +66,29 @@ public final class CatnapperConf implements ServletContextListener {
 			((ch.qos.logback.classic.LoggerContext)LoggerFactory.getILoggerFactory()).stop();
 	}
 
-	public static String pathToFeeds() {
-		return CatnapperConf.pathToFeeds;
+	public static CatnapperContext instance() {
+	    return CatnapperContext.INSTANCE;
+    }
+
+	public String pathToFeeds() {
+		return this.pathToFeeds;
 	}
 
-	public static int maxConcTasks() {
-		return CatnapperConf.maxConcTasks;
+	public int maxConcTasks() {
+		return this.maxConcTasks;
 	}
 
-	public static long clientCacheTimeout() {
-		return CatnapperConf.clientCacheTimeout;
+	public long clientCacheTimeout() {
+		return this.clientCacheTimeout;
 	}
 
 	@Deprecated
-	public static FeedAggregate getAggregate(final String identifier) {
+	public FeedAggregate getAggregate(final String identifier) {
 		return store.getAggregate(identifier);
 	}
 
 	@Deprecated
-	public static String setAggregate(final FeedAggregate aggregate, final String newUrls) {
+	public String setAggregate(final FeedAggregate aggregate, final String newUrls) {
 		return store.writeFile(aggregate, newUrls);
 	}
 }

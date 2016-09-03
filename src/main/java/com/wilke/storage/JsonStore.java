@@ -46,7 +46,7 @@ import com.wilke.util.Alarm2;
 
 public final class JsonStore implements Closeable {
 
-	private static final Logger log = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+	private static final Logger log = LoggerFactory.getLogger(JsonStore.class);
 
 	// maps feed identifier to feed aggregate
 	private final Map<String, FeedAggregate> store = new HashMap<>();

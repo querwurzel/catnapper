@@ -24,15 +24,15 @@ import javax.xml.stream.XMLStreamException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.wilke.CatnapperConf;
+import com.wilke.CatnapperContext;
 import com.wilke.util.DaemonThreadFactory;
 
 public class RssFetcher {
 
-	private static final Logger log = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+	private static final Logger log = LoggerFactory.getLogger(RssFetcher.class);
 
 	private static final ExecutorService connectorPool =
-			Executors.newFixedThreadPool(CatnapperConf.maxConcTasks(), DaemonThreadFactory.INSTANCE);
+			Executors.newFixedThreadPool(CatnapperContext.instance().maxConcTasks(), DaemonThreadFactory.INSTANCE);
 
 	/**
 	 * Timeout in milliseconds to be used when opening a communications link to a given URL.

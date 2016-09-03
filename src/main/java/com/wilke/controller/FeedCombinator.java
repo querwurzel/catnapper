@@ -15,7 +15,7 @@ import javax.xml.stream.XMLStreamException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.wilke.CatnapperConf;
+import com.wilke.CatnapperContext;
 import com.wilke.feed.FeedAggregate;
 import com.wilke.feed.rss.RssCombinator;
 
@@ -26,7 +26,7 @@ public final class FeedCombinator extends HttpServlet {
 
 	private static final long serialVersionUID = -1262361487011189016L;
 
-	private static final Logger log = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+	private static final Logger log = LoggerFactory.getLogger(FeedCombinator.class);
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -61,7 +61,7 @@ public final class FeedCombinator extends HttpServlet {
 			ifModifiedSince = -1L;
 		}
 
-		if (now > ifModifiedSince + TimeUnit.HOURS.toMillis(CatnapperConf.clientCacheTimeout()))
+		if (now > ifModifiedSince + TimeUnit.HOURS.toMillis(CatnapperContext.instance().clientCacheTimeout()))
 			return now; // last request is too long ago
 
 		return ifModifiedSince; // no change since last request

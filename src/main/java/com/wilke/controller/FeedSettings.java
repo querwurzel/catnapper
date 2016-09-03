@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import com.wilke.CatnapperConf;
+import com.wilke.CatnapperContext;
 import com.wilke.feed.FeedAggregate;
 
 @WebServlet(
@@ -50,7 +50,7 @@ public class FeedSettings extends HttpServlet {
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 		final FeedAggregate aggregate = (FeedAggregate)request.getAttribute(FEED_AGGREGATE);
 
-		request.getSession().setAttribute(NEW_FEED_URLS, CatnapperConf.setAggregate(aggregate, request.getParameter("feedUrls")));
+		request.getSession().setAttribute(NEW_FEED_URLS, CatnapperContext.instance().setAggregate(aggregate, request.getParameter("feedUrls")));
 
 		response.sendRedirect( request.getRequestURL().toString() );
 	}

@@ -14,7 +14,7 @@ import com.wilke.feed.rss.RssFetcher;
 //TODO RssFeed is way too specific, relax type!
 public class FeedAggregate {
 
-	private static final Logger log = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+	private static final Logger log = LoggerFactory.getLogger(FeedAggregate.class);
 	
 	/**
 	 * @throws NullPointerException

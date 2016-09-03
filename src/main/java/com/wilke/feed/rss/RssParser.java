@@ -14,7 +14,7 @@ import com.wilke.feed.rss.RssFeed.RssItem;
 
 public class RssParser {
 
-	private static final Logger log = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+	private static final Logger log = LoggerFactory.getLogger(RssParser.class);
 
 	private static final XMLInputFactory inputFactory = XMLInputFactory.newFactory();
 	static {

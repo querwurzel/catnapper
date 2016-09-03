@@ -12,7 +12,7 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.wilke.CatnapperConf;
+import com.wilke.CatnapperContext;
 import com.wilke.feed.FeedAggregate;
 
 @WebFilter(servletNames={"FeedCombinator", "FeedSettings"})
@@ -26,7 +26,7 @@ public class FeedFilter implements Filter {
 		final HttpServletResponse httpResp = (HttpServletResponse)response;
 
 		final String feedIdentifier   = FeedFilter.getFeedIdentifier(httpReq.getRequestURI());
-		final FeedAggregate aggregate = CatnapperConf.getAggregate(feedIdentifier);
+		final FeedAggregate aggregate = CatnapperContext.instance().getAggregate(feedIdentifier);
 
 		if (aggregate == null) { // abort further processing
 			httpResp.reset();
