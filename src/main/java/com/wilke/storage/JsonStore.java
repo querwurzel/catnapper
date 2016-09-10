@@ -1,61 +1,34 @@
 package com.wilke.storage;
 
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
+import com.wilke.feed.FeedAggregate;
+import com.wilke.util.Alarm2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.io.StringReader;
+import javax.json.*;
+import javax.json.stream.JsonGenerator;
+import javax.json.stream.JsonParsingException;
+import java.io.*;
 import java.net.URL;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonException;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
-import javax.json.stream.JsonGenerator;
-import javax.json.stream.JsonParsingException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.wilke.feed.FeedAggregate;
-import com.wilke.util.Alarm2;
+import static java.nio.file.StandardWatchEventKinds.*;
 
 public final class JsonStore implements Closeable {
 
 	private static final Logger log = LoggerFactory.getLogger(JsonStore.class);
 
-	// maps feed identifier to feed aggregate
-	private final Map<String, FeedAggregate> store = new HashMap<>();
-
-	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-
 	private final Path path;
 
 	private final Alarm2 alarm = new Alarm2(() -> JsonStore.this.scheduleFileScanNow(), 10);
+
+    // maps feed identifier to feed aggregate
+    private volatile Map<String, FeedAggregate> store = new HashMap<>();
 
 	private final Thread fileWatcher = new Thread() {
 		@Override
@@ -105,12 +78,7 @@ public final class JsonStore implements Closeable {
 	}
 
 	public FeedAggregate getAggregate(final String identifier) {
-		try {
-			this.lock.readLock().lock();
-			return this.store.get(identifier);
-		} finally {
-			this.lock.readLock().unlock();
-		}
+        return this.store.get(identifier);
 	}
 
 	public void scheduleFileScan() {
@@ -119,23 +87,17 @@ public final class JsonStore implements Closeable {
 
 	public void scheduleFileScanNow() {
 		final List<Path> files = this.collectFiles();
-		final List<FeedAggregate> feeds = new ArrayList<>();
+        final Map<String, FeedAggregate> feeds = new HashMap<>();
 
 		for (final Path file : files)
 			try {
-				feeds.add( this.parseFile(file) );
+                final FeedAggregate aggregate = this.parseFile(file);
+                feeds.put(aggregate.identifier, aggregate);
 			} catch (final JsonException e) {
 				log.warn("Could not parse json file: {}", e.toString()); // log and continue
 			}
 
-		try {
-			this.lock.writeLock().lock();
-			this.store.clear();
-			for (final FeedAggregate feed : feeds)
-				this.store.put(feed.identifier, feed);
-		} finally {
-			this.lock.writeLock().unlock();
-		}
+        this.store = feeds;
 	}
 
 	private List<Path> collectFiles() {
