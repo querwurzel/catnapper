@@ -1,9 +1,10 @@
 package com.wilke.controller;
 
-import static com.wilke.controller.FeedFilter.FEED_AGGREGATE;
-
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import com.wilke.CatnapperContext;
+import com.wilke.feed.FeedAggregate;
+import com.wilke.feed.rss.RssCombinator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -11,13 +12,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLStreamException;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.wilke.CatnapperContext;
-import com.wilke.feed.FeedAggregate;
-import com.wilke.feed.rss.RssCombinator;
+import static com.wilke.controller.FeedFilter.FEED_AGGREGATE;
 
 @WebServlet(
 		name="FeedCombinator",

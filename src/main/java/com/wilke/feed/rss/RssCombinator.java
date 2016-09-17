@@ -1,15 +1,14 @@
 package com.wilke.feed.rss;
 
-import java.io.OutputStream;
-import java.util.Iterator;
+import com.wilke.feed.FeedAggregate;
+import com.wilke.feed.rss.RssFeed.RssChannel;
+import com.wilke.feed.rss.RssFeed.RssItem;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-
-import com.wilke.feed.FeedAggregate;
-import com.wilke.feed.rss.RssFeed.RssChannel;
-import com.wilke.feed.rss.RssFeed.RssItem;
+import java.io.OutputStream;
+import java.util.Iterator;
 
 public class RssCombinator {
 

@@ -1,17 +1,16 @@
 package com.wilke.feed;
 
+import com.wilke.feed.rss.RssFeed;
+import com.wilke.feed.rss.RssFetcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.wilke.feed.rss.RssFeed;
-import com.wilke.feed.rss.RssFetcher;
-
-//TODO RssFeed is way too specific, relax type!
+// TODO RssFeed is way too specific, relax type!
 public class FeedAggregate {
 
 	private static final Logger log = LoggerFactory.getLogger(FeedAggregate.class);

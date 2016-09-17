@@ -1,9 +1,7 @@
 package com.wilke.controller;
 
-import static com.wilke.controller.FeedFilter.FEED_AGGREGATE;
-
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import com.wilke.CatnapperContext;
+import com.wilke.feed.FeedAggregate;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -11,9 +9,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
-import com.wilke.CatnapperContext;
-import com.wilke.feed.FeedAggregate;
+import static com.wilke.controller.FeedFilter.FEED_AGGREGATE;
 
 @WebServlet(
 		name="FeedSettings",

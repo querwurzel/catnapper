@@ -1,19 +1,13 @@
 package com.wilke.controller;
 
-import java.io.IOException;
+import com.wilke.CatnapperContext;
+import com.wilke.feed.FeedAggregate;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.wilke.CatnapperContext;
-import com.wilke.feed.FeedAggregate;
+import java.io.IOException;
 
 @WebFilter(servletNames={"FeedCombinator", "FeedSettings"})
 public class FeedFilter implements Filter {
