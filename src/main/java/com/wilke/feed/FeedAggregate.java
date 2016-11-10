@@ -40,7 +40,7 @@ public class FeedAggregate {
 	 *
 	 * @see com.wilke.feed.rss.RssFetcher#fetchFeeds(List)
 	 */
-	public Iterator<RssFeed> fetchFeeds() {
+	public Iterable<RssFeed> fetchFeeds() {
 		// prevent recursion by self-reference
 		for (final Iterator<String> iter = this.urls.iterator(); iter.hasNext();) {
 			final String item = iter.next();

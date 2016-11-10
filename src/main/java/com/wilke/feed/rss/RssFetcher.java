@@ -14,7 +14,14 @@ import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public class RssFetcher {
 
@@ -25,12 +32,12 @@ public class RssFetcher {
 	/**
 	 * Timeout in milliseconds to be used when opening a communications link to a given URL.
 	 */
-	public static final int connectTimeout = 4000;
+	public static final int connectTimeout = 5000;
 
 	/**
 	 * Timeout in milliseconds to be used when a connection is established to a given URL to read all data.
 	 */
-	public static final int readTimeout = 4000;
+	public static final int readTimeout = 5000;
 
 	/**
 	 * No automatic feed type recognition, RSS 2.0 via HTTP/S is expected!
@@ -38,52 +45,63 @@ public class RssFetcher {
 	 * The iterator returned is not thread-safe.
 	 * Its {@link java.util.Iterator#hasNext()} and {@link java.util.Iterator#next()} methods may block for {@value #connectTimeout}+{@value #readTimeout} milliseconds at most.
 	 */
-	public static Iterator<RssFeed> fetchFeeds(final List<String> urls) {
+	public static Iterable<RssFeed> fetchFeeds(final List<String> urls) {
 		final CompletionService<RssFeed> collector = new ExecutorCompletionService<>(executor);
 
 		for (final String url : urls)
 			collector.submit(new RssFetchTask(url));
 
-		return new RssFeedIterator(collector, urls.size());
+		return () -> new RssFeedIterator(collector, urls.size());
 	}
 
 	private static class RssFetchTask implements Callable<RssFeed> {
-		private final String url;
+        private final String originalUrl;
+		private String currentUrl;
 
 		public RssFetchTask(final String url) {
-			this.url = url;
+            this.originalUrl = url;
+            this.currentUrl = this.originalUrl;
 		}
 
 		@Override
 		public RssFeed call() throws IOException {
-			try {
-				final URL safeUrl = new URL(this.url);
-				if (!"http".equals(safeUrl.getProtocol()) && !"https".equals(safeUrl.getProtocol()))
-					throw new MalformedURLException("HTTP/S is expected");
+            for (int attempts = 3; attempts > 0; attempts--)
+                try {
+                    final URL url = new URL(this.currentUrl);
+                    if (!"http".equals(url.getProtocol()) && !"https".equals(url.getProtocol()))
+                        throw new MalformedURLException("HTTP/S expected");
 
-				// dependent of system proxy
-				final HttpURLConnection conn = (HttpURLConnection)safeUrl.openConnection();
-				conn.setConnectTimeout(connectTimeout);
-				conn.setReadTimeout(readTimeout);
-				conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko");
-				conn.setRequestProperty("Accept", "application/rss+xml, application/xhtml+xml, text/xml");
-				conn.setRequestProperty("Accept-Charset", "UTF-8");
-				conn.setRequestProperty("Accept-Encoding", "identity"); // TODO support gzip
-				conn.setUseCaches(Boolean.FALSE);
-				conn.connect();
+                    // dependent of system proxy
+                    final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn.setInstanceFollowRedirects(Boolean.TRUE);
+                    conn.setUseCaches(Boolean.FALSE);
+                    conn.setConnectTimeout(connectTimeout);
+                    conn.setReadTimeout(readTimeout);
+                    conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko");
+                    conn.setRequestProperty("Accept", "application/rss+xml, application/xhtml+xml, text/xml");
+                    conn.setRequestProperty("Accept-Charset", "UTF-8");
+                    conn.setRequestProperty("Accept-Encoding", "identity"); // TODO support gzip
+                    conn.connect();
 
-				try (final InputStream stream = conn.getInputStream()) {
-					if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) // 200 (through naive)
-						throw new IOException(String.format("Request unsuccessful (HTTP %d)", conn.getResponseCode()));
+                    try (final InputStream stream = conn.getInputStream()) {
+                        switch (conn.getResponseCode()) {
+                            case HttpURLConnection.HTTP_MOVED_PERM:
+                            case HttpURLConnection.HTTP_MOVED_TEMP:
+                                final URL redirect = new URL(conn.getHeaderField("Location"));
+                                this.currentUrl = redirect.toExternalForm();
+                                continue;
+                            case HttpURLConnection.HTTP_OK:
+                                return RssParser.parseFeed(stream);
+                            default:
+                                throw new IOException(String.format("request unsuccessful (response code %d)", conn.getResponseCode()));
+                        }
+                    }
+                } catch (IOException | XMLStreamException e) {
+                    throw new IOException(this.originalUrl, e); // enrich exception by url
+                }
 
-					return RssParser.parseFeed(conn.getInputStream());
-				} finally {
-					conn.disconnect();
-				}
-			} catch (IOException | XMLStreamException e) {
-				throw new IOException(this.url, e); // enrich exception by url
-			}
-		}
+            throw new IOException(this.originalUrl, new IOException("maximum number of redirects reached"));
+        }
 	}
 
 	private static class RssFeedIterator implements Iterator<RssFeed> {
@@ -124,12 +142,12 @@ public class RssFetcher {
                     }
                 }
 
-                return Boolean.FALSE;
+                this.nextItem = null;
+                return !(this.isClosed = Boolean.TRUE);
             } catch (final InterruptedException e) {
-                throw new ConcurrentModificationException(e);
-            } finally {
                 this.nextItem = null;
                 this.isClosed = Boolean.TRUE;
+                throw new ConcurrentModificationException(e);
             }
         }
 

@@ -8,14 +8,13 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.OutputStream;
-import java.util.Iterator;
 
 public class RssCombinator {
 
 	private static final XMLOutputFactory outputFactory = XMLOutputFactory.newFactory();
 
 	public static void aggregateFeed(final OutputStream stream, final FeedAggregate aggregate) throws XMLStreamException {
-		final Iterator<RssFeed> it = aggregate.fetchFeeds();
+		final Iterable<RssFeed> feeds = aggregate.fetchFeeds();
 		final XMLStreamWriter writer = outputFactory.createXMLStreamWriter(stream);
 
 		try {
@@ -41,10 +40,8 @@ public class RssCombinator {
 			writer.writeStartElement(RssChannel.DESCRIPTION);
 			writer.writeCharacters(aggregate.description);
 			writer.writeEndElement();
-	
-			while (it.hasNext()) {
-				final RssFeed feed = it.next();
-	
+
+            for (RssFeed feed : feeds) {
 				for (final RssItem item : feed.channel.items) {
 					writer.writeStartElement(RssItem.ITEM);
 	
