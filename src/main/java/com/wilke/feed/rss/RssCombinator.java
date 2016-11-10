@@ -41,7 +41,7 @@ public class RssCombinator {
 			writer.writeCharacters(aggregate.description);
 			writer.writeEndElement();
 
-            for (RssFeed feed : feeds) {
+            for (final RssFeed feed : feeds) {
 				for (final RssItem item : feed.channel.items) {
 					writer.writeStartElement(RssItem.ITEM);
 	

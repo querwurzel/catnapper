@@ -61,9 +61,13 @@ public final class CatnapperContext implements ServletContextListener {
 
     @Override
     public void contextDestroyed(final ServletContextEvent sce) {
-        final JsonStore ref = this.store;
-        if (ref != null)
-            ref.close();
+        final JsonStore store = this.store;
+        if (store != null)
+            store.close();
+
+        final ExecutorService executorService = this.executorService;
+        if (executorService != null)
+            executorService.shutdown();
 
         // shutdown logback
         if (LoggerFactory.getILoggerFactory() instanceof ch.qos.logback.classic.LoggerContext)

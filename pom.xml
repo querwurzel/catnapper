@@ -6,7 +6,7 @@
 	<groupId>com.wilke</groupId>
 	<artifactId>catnapper</artifactId>
 	<packaging>war</packaging>
-	<version>6</version>
+	<version>7</version>
 	<name>Catnapper</name>
 	<properties>
 		<java.version>1.8</java.version>
