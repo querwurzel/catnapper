@@ -6,7 +6,7 @@ Fetches your favorite nyaa anime series and creates a single RSS feed to be subs
 This feed is slightly rearranged so that each feed item will contain the link to its __torrent file for quicker access__.
 
 The URL for each anime must be entered once by you like:<br>
-`http://www.nyaa.se/?page=rss&term=HorribleSubs+sword+art+online+ii+720p+mkv`
+`http://www.nyaa.si/?page=rss&term=HorribleSubs+sword+art+online+ii+720p+mkv`
 
 __Requirements__:
 - Java 8+ (JRE or JDK)
